@@ -1,9 +1,8 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # update-cf-dns
 # v1.0
 # Update a cloudflare DNS record based on system's external IP
 # by crashcartpro
-#
 
 print_usage() {
 cat <<'EOF'
@@ -78,8 +77,5 @@ else
     -X PUT "$API_ENDPOINT/$ZONE_ID/dns_records/$RECORD_ID" \
     -H "Authorization: Bearer $CF_TOKEN" \
     -H "Content-Type: application/json" \
-    --data '{"type":"A","name":"library","content":"'"$MY_IP"'","ttl":1,"proxied":false}' 
+    --data '{"type":"A","name":"'"$CF_DOMAIN"'","content":"'"$MY_IP"'","ttl":1,"proxied":false}' 
 fi
-
-# TODO get record name from supplied domain to give in the data section here
-echo "curl -X PUT \"$API_ENDPOINT/$ZONE_ID/dns_records/$RECORD_ID\" -H \"Authorization: Bearer $CF_TOKEN\" -H \"Content-Type: application/json\" --data \'{\"type\":\"A\",\"name\":\"library\",\"content\":\"\'\"$MY_IP\"\'\",\"ttl\":1,\"proxied\":false}\'"
