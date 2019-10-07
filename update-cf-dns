@@ -1,0 +1,85 @@
+#!/bin/bash
+# update-cf-dns
+# v1.0
+# Update a cloudflare DNS record based on system's external IP
+# by crashcartpro
+#
+
+print_usage() {
+cat <<'EOF'
+
+USAGE: script requires CF_DOMAIN and CF_TOKEN
+  CF_DOMAIN
+	The full domain of the record to be updated, like subdomain.example.com
+	supplied as first argument or CF_DOMAIN environment variable.
+  CF_TOKEN
+	Your cloudflare API Token. can be supplied as second argument or 
+	recomended as CF_TOKEN environment variable. 
+
+EOF
+}
+
+err_msg() {
+  echo "$(date +'%Y-%m-%d-%T%z') ERROR $*" >&2
+}
+
+info_msg() {
+  echo "$(date +'%Y-%m-%d-%T%z') INFO $*" >&2
+}
+
+# Test for CF_DOMAIN being supplied as arg or var
+if [[ -z "$1" ]]; then
+  if [[ -z "$CF_DOMAIN" ]]; then
+    err_msg "no target domain defined"
+    print_usage
+    exit
+  fi
+else
+  CF_DOMAIN="$1"
+fi
+
+# Test for CF_TOKEN being supplied as arg or var
+if [[ -z "$2" ]]; then
+  if [[ -z "$CF_TOKEN" ]]; then
+    err_msg "no API token defined"
+    print_usage
+    exit
+  fi
+else
+  CF_TOKEN="$2"
+fi
+
+API_ENDPOINT="https://api.cloudflare.com/client/v4/zones"
+# TODO get zone and/or zone_id from whatever domain is supplied
+ZONE="taoexmachina.com"
+ZONE_ID=$(curl \
+  -X GET "$API_ENDPOINT?name=$ZONE" \
+  -H "Authorization: Bearer $CF_TOKEN" \
+  -H "Content-Type: application/json" | \
+  jq -r '.result[].id')
+RECORD_ID=$(curl \
+  -X GET "$API_ENDPOINT/$ZONE_ID/dns_records?name=$CF_DOMAIN" \
+  -H "Authorization: Bearer $CF_TOKEN" \
+  -H "Content-Type: application/json" | \
+  jq -r '.result[].id')
+MY_IP=$(dig +short myip.opendns.com @resolver1.opendns.com)
+CURRENT_IP=$(curl \
+  -X GET "$API_ENDPOINT/$ZONE_ID/dns_records?name=$CF_DOMAIN" \
+  -H "Authorization: Bearer $CF_TOKEN" \
+  -H "Content-Type: application/json" | \
+  jq -r '.result[].content')
+
+# test and update dns record for domain if you have a new ip
+if [[ $MY_IP == "$CURRENT_IP" ]]; then
+  info_msg "$MY_IP already set for $CF_DOMAIN"
+else
+  info_msg "$CURRENT_IP updated to $MY_IP for $CF_DOMAIN"
+  curl \
+    -X PUT "$API_ENDPOINT/$ZONE_ID/dns_records/$RECORD_ID" \
+    -H "Authorization: Bearer $CF_TOKEN" \
+    -H "Content-Type: application/json" \
+    --data '{"type":"A","name":"library","content":"'"$MY_IP"'","ttl":1,"proxied":false}' 
+fi
+
+# TODO get record name from supplied domain to give in the data section here
+echo "curl -X PUT \"$API_ENDPOINT/$ZONE_ID/dns_records/$RECORD_ID\" -H \"Authorization: Bearer $CF_TOKEN\" -H \"Content-Type: application/json\" --data \'{\"type\":\"A\",\"name\":\"library\",\"content\":\"\'\"$MY_IP\"\'\",\"ttl\":1,\"proxied\":false}\'"
