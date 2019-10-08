@@ -29,7 +29,7 @@ info_msg() {
 # Test for CF_DOMAIN being supplied as arg or var
 if [[ -z "$1" ]]; then
   if [[ -z "$CF_DOMAIN" ]]; then
-    err_msg "no target domain defined"
+    err_msg "No full domain defined."
     print_usage
     exit
   fi
@@ -40,7 +40,7 @@ fi
 # Test for CF_TOKEN being supplied as arg or var
 if [[ -z "$2" ]]; then
   if [[ -z "$CF_TOKEN" ]]; then
-    err_msg "no API token defined"
+    err_msg "No cloudflare API token defined."
     print_usage
     exit
   fi
