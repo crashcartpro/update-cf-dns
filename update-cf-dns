@@ -51,17 +51,21 @@ fi
 API_ENDPOINT="https://api.cloudflare.com/client/v4/zones"
 # TODO get zone and/or zone_id from whatever domain is supplied
 ZONE="taoexmachina.com"
+
 ZONE_ID=$(curl \
   -X GET "$API_ENDPOINT?name=$ZONE" \
   -H "Authorization: Bearer $CF_TOKEN" \
   -H "Content-Type: application/json" | \
   jq -r '.result[].id')
+
 RECORD_ID=$(curl \
   -X GET "$API_ENDPOINT/$ZONE_ID/dns_records?name=$CF_DOMAIN" \
   -H "Authorization: Bearer $CF_TOKEN" \
   -H "Content-Type: application/json" | \
   jq -r '.result[].id')
+
 MY_IP=$(dig +short myip.opendns.com @resolver1.opendns.com)
+
 CURRENT_IP=$(curl \
   -X GET "$API_ENDPOINT/$ZONE_ID/dns_records?name=$CF_DOMAIN" \
   -H "Authorization: Bearer $CF_TOKEN" \
