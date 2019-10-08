@@ -53,13 +53,13 @@ API_ENDPOINT="https://api.cloudflare.com/client/v4/zones"
 # TODO get zone and/or zone_id from whatever domain is supplied
 ZONE="taoexmachina.com"
 
-ZONE_ID=$(curl \
+ZONE_ID=$(curl -s \
   -X GET "$API_ENDPOINT?name=$ZONE" \
   -H "Authorization: Bearer $CF_TOKEN" \
   -H "Content-Type: application/json" | \
   jq -r '.result[].id')
 
-RECORD_ID=$(curl \
+RECORD_ID=$(curl -s \
   -X GET "$API_ENDPOINT/$ZONE_ID/dns_records?name=$CF_DOMAIN" \
   -H "Authorization: Bearer $CF_TOKEN" \
   -H "Content-Type: application/json" | \
@@ -67,7 +67,7 @@ RECORD_ID=$(curl \
 
 MY_IP=$(dig +short myip.opendns.com @resolver1.opendns.com)
 
-CURRENT_IP=$(curl \
+CURRENT_IP=$(curl -s \
   -X GET "$API_ENDPOINT/$ZONE_ID/dns_records?name=$CF_DOMAIN" \
   -H "Authorization: Bearer $CF_TOKEN" \
   -H "Content-Type: application/json" | \
@@ -78,7 +78,7 @@ if [[ $MY_IP == "$CURRENT_IP" ]]; then
   info_msg "$MY_IP already set for $CF_DOMAIN"
 else
   info_msg "$CURRENT_IP updated to $MY_IP for $CF_DOMAIN"
-  curl \
+  curl -s \
     -X PUT "$API_ENDPOINT/$ZONE_ID/dns_records/$RECORD_ID" \
     -H "Authorization: Bearer $CF_TOKEN" \
     -H "Content-Type: application/json" \
