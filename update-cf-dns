@@ -1,8 +1,9 @@
-#!/usr/bin/env bash -e
+#!/usr/bin/env bash
 # update-cf-dns
 # v1.0
 # Update a cloudflare DNS record based on system's external IP
 # by crashcartpro
+set -e
 
 print_usage() {
 cat <<'EOF'
