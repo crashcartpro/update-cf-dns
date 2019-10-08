@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env bash -e
 # update-cf-dns
 # v1.0
 # Update a cloudflare DNS record based on system's external IP
